@@ -19,8 +19,9 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
 /**
- * Hello world!
- *
+ * Rog is a Java library for random complex object generation.
+ * It uses reflection to create random instances of objects in
+ * any viable fashion. This includes generation from contructors, factories, and subTypes.
  */
 public class ROG {
 
@@ -115,7 +116,6 @@ public class ROG {
         rng.setConfig(config);
         return new InstanceDispatcher(rng, this).getInstance(pkg);
     }
-
 
     public Object tryGetInstance(Class<?> target) {
         return tryGetInstance(target, this.defaultConfig);

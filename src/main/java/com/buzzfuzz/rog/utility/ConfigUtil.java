@@ -14,7 +14,7 @@ import org.w3c.dom.NodeList;
 
 public class ConfigUtil {
 
-    public static ConfigTree addConfigFile(String path) {
+    public static ConfigTree createConfigFromFile(String path) {
 		if (!path.isEmpty() && path != null) {
 			try {
 				DocumentBuilderFactory factory =	DocumentBuilderFactory.newInstance();
