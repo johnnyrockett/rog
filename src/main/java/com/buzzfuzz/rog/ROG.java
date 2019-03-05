@@ -116,6 +116,25 @@ public class ROG {
         return new InstanceDispatcher(rng, this).getInstance(pkg);
     }
 
+
+    public Object tryGetInstance(Class<?> target) {
+        return tryGetInstance(target, this.defaultConfig);
+    }
+
+    public Object tryGetInstance(Class<?> target, Config config) {
+        return tryGetInstance(new ClassPkg(target, null), config);
+    }
+
+    public Object tryGetInstance(ClassPkg pkg) {
+        return tryGetInstance(pkg, this.defaultConfig);
+    }
+
+    public Object tryGetInstance(ClassPkg pkg, Config config) {
+        RNG rng = new RNG();
+        rng.setConfig(config);
+        return new InstanceDispatcher(rng, this).tryGetInstance(pkg);
+    }
+
     public void logCrash(Exception e, Config config) {
 		Throwable t = e;
 		while (t.getCause() != null && t.getCause().getStackTrace().length > 0) {
