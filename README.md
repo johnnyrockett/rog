@@ -47,6 +47,11 @@ However, rog offers much more customization around this process. For instance, i
 List<String> strs = rog.getInstance(new ClassPkg(List.class, String.class));
 ```
 
+If you want the instance that you are getting to sometimes return null, just replace "getInstance" with "tryGetInstance"
+```java
+String str = rog.tryGetInstance(String.class);
+```
+
 Since it is often the case that users want to create random objects from the arguments of methods, a shortcut for this use case exists within the library.
 
 ```java
