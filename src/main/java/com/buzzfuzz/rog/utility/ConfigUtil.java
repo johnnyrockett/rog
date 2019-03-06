@@ -1,12 +1,27 @@
 package com.buzzfuzz.rog.utility;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import com.buzzfuzz.rog.decisions.Config;
 import com.buzzfuzz.rog.decisions.ConfigTree;
 import com.buzzfuzz.rog.decisions.Constraint;
 import com.buzzfuzz.rog.decisions.Target;
 import com.buzzfuzz.rog.decisions.ConfigTree.Scope;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -91,7 +106,7 @@ public class ConfigUtil {
 				constraint.setNullProb(value);
 			}
 		}
-		
+
 		return constraint;
     }
 
@@ -111,6 +126,61 @@ public class ConfigUtil {
 		for (Scope child : scope.getChildren()) {
 			mergeTrees(t1, child);
 		}
-	}
+    }
+
+    // This should really be the Engine's job to make sure that everything is still thread-safe
+	public static synchronized void log(String path, Config config) {
+		File corpus = Paths.get(path, "corpus").toFile();
+		if (!corpus.exists())
+			corpus.mkdir();
+		
+		File output = Paths.get(corpus.toURI().getPath(), String.valueOf(config.hashCode())).toFile();
+		if (output.exists())
+			output.delete();
+		
+		output.mkdir();
+		
+		// Print the log of decisions that were made
+		File logger = Paths.get(output.toURI().getPath(), "log.txt").toFile();
+		BufferedWriter writer = null;
+		try {
+		    writer = new BufferedWriter(new FileWriter(logger));
+		    writer.append(config.getLog());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+		    if (writer != null)
+				try {
+					writer.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+		
+		// Print configuration that was used
+		File configuration = Paths.get(output.getPath(), "config.xml").toFile();
+		
+		Document doc = config.toXML();
+		
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	    Transformer transformer;
+		try {
+			transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+			DOMSource source = new DOMSource(doc);
+			
+		     StreamResult result = new StreamResult(configuration);
+		    
+			transformer.transform(source, result);
+		} catch (TransformerConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
+		}
+    }
 
 }

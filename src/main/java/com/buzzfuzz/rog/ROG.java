@@ -89,11 +89,11 @@ public class ROG {
         return new InstanceDispatcher(rng, this).randomArgs(cnstr.getGenericParameterTypes());
     }
 
-    public Object getArgInstancesFor(Method mth) {
+    public Object[] getArgInstancesFor(Method mth) {
         return getArgInstancesFor(mth, this.defaultConfig);
     }
 
-    public Object getArgInstancesFor(Method mth, Config config) {
+    public Object[] getArgInstancesFor(Method mth, Config config) {
         RNG rng = new RNG();
         rng.setConfig(config);
         return new InstanceDispatcher(rng, this).randomArgs(mth.getGenericParameterTypes());
@@ -136,12 +136,8 @@ public class ROG {
     }
 
     public void logCrash(Exception e, Config config) {
-		Throwable t = e;
-		while (t.getCause() != null && t.getCause().getStackTrace().length > 0) {
-			t = t.getCause();
-        }
         if (shouldLog) {
-            System.out.println(t.getClass().getSimpleName());
+            System.out.println(e.getClass().getSimpleName());
         }
     }
 }

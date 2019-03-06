@@ -11,14 +11,18 @@ import com.buzzfuzz.rog.decisions.ConfigTree.Scope;
 import com.buzzfuzz.rog.decisions.Target;
 
 public class Config {
-	
+
 	ConfigTree config;
 	StringBuilder log;
 	
 	public Config() {
 		config = new ConfigTree();
 		log = new StringBuilder();
-	}
+    }
+
+    public ConfigTree getTree() {
+        return this.config;
+    }
 
 	public void log(String msg) {
 		log.append(msg);
