@@ -237,15 +237,15 @@ public class InstanceDispatcher {
 		return array;
 //		return Array.newInstance(type.getClazz(), 0).getClass().cast(array);
 	}
-	
+
 	private Object randomArray(Class<?> type) {
 		return randomArray(new ClassPkg(type, null));
 	}
 	
-	public ClassPkg[] packageClasses(Type[] genArgs) {
+	public static ClassPkg[] packageClasses(Type[] genArgs) {
 		// TODO: Sometimes target or generics is null. Maybe this is because of cases like 'E'
 		
-		
+
 		// We are creating one classPkg per argument
 		ClassPkg[] pkgs = new ClassPkg[genArgs.length];
 		
@@ -264,8 +264,8 @@ public class InstanceDispatcher {
 					if (gtype instanceof WildcardType) {
 						// Generic is in "? extends Class" format. We want its upperbound
 						WildcardType wc = (WildcardType)gtype;
-						if (wc.getUpperBounds()[0] == null)
-							log("New kind of wildcard");
+						// if (wc.getUpperBounds()[0] == null)
+						// 	log("New kind of wildcard");
 						generics[j] = wc.getUpperBounds()[0];
 					} else {
 						// Generic is a normal class at this point (probably)
