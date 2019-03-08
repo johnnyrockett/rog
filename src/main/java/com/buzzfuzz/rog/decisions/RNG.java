@@ -19,7 +19,7 @@ public class RNG {
 	private int crashCount;
 
 	public RNG() {
-		this(System.nanoTime());
+        this(new Random().nextLong());
 	}
 
 	public RNG(long seed) {
