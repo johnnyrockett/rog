@@ -16,9 +16,9 @@ public class CarefulMethodParameterScanner extends AbstractScanner {
 
         for (Object method : md.getMethods(cls)) {
 
-        		if (md.getMethodName(method).contains("access")) {
-        			continue;
-        		}
+            if (md.getMethodName(method).indexOf('$') != -1) {
+                continue;
+            }
         	
             String signature = md.getParameterNames(method).toString();
             if (acceptResult(signature)) {

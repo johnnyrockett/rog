@@ -1,7 +1,9 @@
 package com.buzzfuzz.rog;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -99,40 +101,24 @@ public class ROG {
         return new InstanceDispatcher(rng, this).randomArgs(mth.getGenericParameterTypes());
     }
 
-    public Object getInstance(Class<?> target) {
-        return getInstance(target, this.defaultConfig);
+    public <T> T getInstance(Class<T> clazz) {
+        return getInstance(clazz, this.defaultConfig);
     }
 
-    public Object getInstance(Class<?> target, Config config) {
-        return getInstance(new ClassPkg(target, null), config);
-    }
-
-    public Object getInstance(ClassPkg pkg) {
-        return getInstance(pkg, this.defaultConfig);
-    }
-
-    public Object getInstance(ClassPkg pkg, Config config) {
+    public <T> T getInstance(Class<T> clazz, Config config) {
         RNG rng = new RNG();
         rng.setConfig(config);
-        return new InstanceDispatcher(rng, this).getInstance(pkg);
+        return clazz.cast(new InstanceDispatcher(rng, this).getInstance(clazz));
     }
 
-    public Object tryGetInstance(Class<?> target) {
-        return tryGetInstance(target, this.defaultConfig);
+    public Object tryGetInstance(Type type) {
+        return tryGetInstance(type, this.defaultConfig);
     }
 
-    public Object tryGetInstance(Class<?> target, Config config) {
-        return tryGetInstance(new ClassPkg(target, null), config);
-    }
-
-    public Object tryGetInstance(ClassPkg pkg) {
-        return tryGetInstance(pkg, this.defaultConfig);
-    }
-
-    public Object tryGetInstance(ClassPkg pkg, Config config) {
+    public Object tryGetInstance(Type type, Config config) {
         RNG rng = new RNG();
         rng.setConfig(config);
-        return new InstanceDispatcher(rng, this).tryGetInstance(pkg);
+        return new InstanceDispatcher(rng, this).tryGetInstance(type);
     }
 
     public void logCrash(Exception e, Config config) {

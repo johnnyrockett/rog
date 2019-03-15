@@ -5,6 +5,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -64,11 +65,13 @@ public class InstanceDispatcher {
 		}
 		rng.log(msg + '\n');
 	}
-	
-	public Object tryGetInstance(ClassPkg target) {
+
+	public Object tryGetInstance(Type type) {
+        ClassPkg target = parseType(type);
+
 		if (history.contains(target))
-			return null;
-		
+            return null;
+
 		// Maybe in load method?
 		history.add(target);
 		loadConstraint(getContext(target.getClazz()));
@@ -79,13 +82,18 @@ public class InstanceDispatcher {
 		}
 		
 		return getInstance(target);
-	}
-	
-	public Object tryGetInstance(Class<?> target) {
-		return tryGetInstance(new ClassPkg(target, null));
-	}
-	
-	public Object getInstance(ClassPkg target) {
+    }
+
+    public Object getInstance(Type type) {
+        // This is probably an indication that I can't get the same kind of generics information from just getClass().
+        // Which makes sense.
+        // The end solution is probably to reserve this method to only work for non-generic types and then
+        // Research ways to reference a field or some kind of lightweight object
+        // Could even automatically make a field a type within my own custom class to make it easier...
+        return getInstance(parseType(type));
+    }
+
+	private Object getInstance(ClassPkg target) {
 		
 		// Might need to move history check here
 		
@@ -107,11 +115,7 @@ public class InstanceDispatcher {
 		}
 		return instance;
 	}
-	
-	public Object getInstance(Class<?> target) {
-		return getInstance(new ClassPkg(target, null));
-	}
-	
+
 	private Target getContext(Class<?> target) {
 		Target context = new Target();
 		String instancePath = "";
@@ -194,20 +198,20 @@ public class InstanceDispatcher {
 			return null;
 		}
 	}
-	
+
 	private Object checkCommon(ClassPkg target) {
 		
 		if (target.getClazz().isArray()) {
 			Class<?> type = target.getClazz().getComponentType();
 			return randomArray(type);
-		} else if (target.getClazz().equals(List.class) ) {
+		} else if (target.getClazz().equals(List.class) || target.getClazz().equals(ArrayList.class)) {
 //			log(String.valueOf(target.getGenerics() == null));
-			Class<?> type = (Class<?>)target.getGenerics()[0];
+			ClassPkg type = parseType(target.getGenerics()[0]);
 			
-			// Unfortunately this needs to be separate from the randArray method because 
+			// Unfortunately this needs to be separate from the randArray method because
 			// there can be arrays of primitives but not Lists of primitives
 			int length = rng.fromRange(0, 10);
-			Object[] array = (Object[])Array.newInstance(type, length);
+			Object[] array = (Object[])Array.newInstance(type.getClazz(), length);
 			for (int i = 0; i < length; i++) {
 				Object instance = new InstanceDispatcher(this).getInstance(type);
 				if (instance == null) {
@@ -240,11 +244,41 @@ public class InstanceDispatcher {
 
 	private Object randomArray(Class<?> type) {
 		return randomArray(new ClassPkg(type, null));
-	}
+    }
+
+    public static ClassPkg parseType(Type type) {
+        ClassPkg pkg;
+        if (type instanceof Class) {
+            // This doesn't have generics.
+            pkg = new ClassPkg((Class<?>)type, null);
+        } else if (type instanceof ParameterizedType){
+            ParameterizedType pt = (ParameterizedType)type;
+            // Eventually will have to store ClassPkgs here to account for List<List<Integer>>
+            Type[] generics = new Type[pt.getActualTypeArguments().length];
+            for (int j=0; j < pt.getActualTypeArguments().length; j++) {
+                Type gtype = pt.getActualTypeArguments()[j];
+                if (gtype instanceof WildcardType) {
+                    // Generic is in "? extends Class" format. We want its upperbound
+                    WildcardType wc = (WildcardType)gtype;
+                    // if (wc.getUpperBounds()[0] == null)
+                    // 	log("New kind of wildcard");
+                    generics[j] = wc.getUpperBounds()[0];
+                } else {
+                    // Generic is a normal class at this point (probably)
+                    generics[j] = gtype;
+                }
+            }
+            pkg = new ClassPkg((Class<?>)pt.getRawType(), generics);
+        } else {
+            // TODO: This is a generic type E. Will need to feed in a random object
+            pkg = new ClassPkg(String.class, null);
+        }
+
+        return pkg;
+    }
 	
 	public static ClassPkg[] packageClasses(Type[] genArgs) {
 		// TODO: Sometimes target or generics is null. Maybe this is because of cases like 'E'
-		
 
 		// We are creating one classPkg per argument
 		ClassPkg[] pkgs = new ClassPkg[genArgs.length];
@@ -252,43 +286,18 @@ public class InstanceDispatcher {
 		// Proposing new way to do generics based on what I know now
 		for (int i=0; i < genArgs.length; i++) {
 			Type type = genArgs[i];
-			if (type instanceof Class) {
-				// This doesn't have generics.
-				pkgs[i] = new ClassPkg((Class<?>)type, null);
-			} else if (type instanceof ParameterizedType){
-				ParameterizedType pt = (ParameterizedType)type;
-				// Eventually will have to store ClassPkgs here to account for List<List<Integer>>
-				Type[] generics = new Type[pt.getActualTypeArguments().length];
-				for (int j=0; j < pt.getActualTypeArguments().length; j++) {
-					Type gtype = pt.getActualTypeArguments()[j];
-					if (gtype instanceof WildcardType) {
-						// Generic is in "? extends Class" format. We want its upperbound
-						WildcardType wc = (WildcardType)gtype;
-						// if (wc.getUpperBounds()[0] == null)
-						// 	log("New kind of wildcard");
-						generics[j] = wc.getUpperBounds()[0];
-					} else {
-						// Generic is a normal class at this point (probably)
-						generics[j] = gtype;
-					}
-				}
-				pkgs[i] = new ClassPkg((Class<?>)pt.getRawType(), generics);
-			} else {
-				// TODO: This is a generic type E. Will need to feed in a random object
-			}
+			pkgs[i] = parseType(type);
 		}
-		
+
 		return pkgs;
 	}
 
     // I can probably make methods like these private. It would be best...
 	public Object[] randomArgs(Type[] genArgs) {
-		
-		ClassPkg[] pkgs = packageClasses(genArgs);
-		
+
 		Object[] instances = new Object[genArgs.length];
-		for (int i = 0; i < pkgs.length; i++) {
-			instances[i] = new InstanceDispatcher(this).tryGetInstance(pkgs[i]);
+		for (int i = 0; i < genArgs.length; i++) {
+			instances[i] = new InstanceDispatcher(this).tryGetInstance(genArgs[i]);
 			// If any of the arguments return BadPath, return BadPath
 //			if (instances[i].getClass().)
 //				return null;
