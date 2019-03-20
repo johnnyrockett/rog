@@ -1,7 +1,6 @@
 package com.buzzfuzz.rog;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
@@ -11,7 +10,6 @@ import java.nio.file.Paths;
 
 import com.buzzfuzz.rog.decisions.Config;
 import com.buzzfuzz.rog.decisions.RNG;
-import com.buzzfuzz.rog.traversal.ClassPkg;
 import com.buzzfuzz.rog.traversal.InstanceDispatcher;
 
 import org.reflections.Reflections;

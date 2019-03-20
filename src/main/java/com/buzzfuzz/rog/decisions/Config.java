@@ -1,5 +1,7 @@
 package com.buzzfuzz.rog.decisions;
 
+import java.lang.reflect.Method;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -13,11 +15,17 @@ import com.buzzfuzz.rog.decisions.Target;
 public class Config {
 
 	ConfigTree config;
-	StringBuilder log;
-	
+    StringBuilder log;
+
+    Method callerMethod;
+
 	public Config() {
-		config = new ConfigTree();
-		log = new StringBuilder();
+        this(new ConfigTree());
+    }
+
+    public Config(ConfigTree tree) {
+        config = tree;
+        log = new StringBuilder();
     }
 
     public ConfigTree getTree() {
@@ -30,6 +38,15 @@ public class Config {
 
 	public StringBuilder getLog() {
 		return log;
+    }
+
+    public void setCallerMethod(Method method) {
+        log(method.toString() + '\n');
+        this.callerMethod = method;
+    }
+
+    public Method getCallerMethod() {
+        return this.callerMethod;
     }
 	
 	@Override

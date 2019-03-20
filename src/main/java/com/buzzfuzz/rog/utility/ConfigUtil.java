@@ -32,7 +32,7 @@ public class ConfigUtil {
     public static ConfigTree createConfigFromFile(String path) {
 		if (!path.isEmpty() && path != null) {
 			try {
-				DocumentBuilderFactory factory =	DocumentBuilderFactory.newInstance();
+				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 				DocumentBuilder builder;
 				builder = factory.newDocumentBuilder();
 				Document doc = builder.parse(path);
