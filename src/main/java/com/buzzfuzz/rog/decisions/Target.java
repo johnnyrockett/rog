@@ -3,7 +3,7 @@ package com.buzzfuzz.rog.decisions;
 public class Target {
 	private String instancePath;
 	private String methodPath;
-	private String argumentName;
+	private String typeName;
 	private String subTypeOf;
 	private String factoryFrom;
 	private String constructorOf;
@@ -12,7 +12,7 @@ public class Target {
 		Target clone = new Target();
 		clone.setInstancePath(this.instancePath);
 		clone.setMethodPath(this.methodPath);
-		clone.setArgumentName(this.argumentName);
+		clone.setTypeName(this.typeName);
 		clone.setSubTypeOf(this.subTypeOf);
 		clone.setFactoryFrom(this.factoryFrom);
 		clone.setConstructorOf(this.constructorOf);
@@ -24,8 +24,8 @@ public class Target {
 			this.instancePath = target.instancePath;
 		if (this.methodPath == null)
 			this.methodPath = target.methodPath;
-		if (this.argumentName == null)
-			this.argumentName = target.argumentName;
+		if (this.typeName == null)
+			this.typeName = target.typeName;
 		if (this.subTypeOf == null)
 			this.subTypeOf = target.subTypeOf;
 		if (this.factoryFrom == null)
@@ -46,11 +46,11 @@ public class Target {
 	public void setMethodPath(String methodPath) {
 		this.methodPath = methodPath;
 	}
-	public String getArgumentName() {
-		return argumentName;
+	public String getTypeName() {
+		return typeName;
 	}
-	public void setArgumentName(String argumentName) {
-		this.argumentName = argumentName;
+	public void setTypeName(String typeName) {
+		this.typeName = typeName;
 	}
 	public String getSubTypeOf() {
 		return subTypeOf;
@@ -70,7 +70,7 @@ public class Target {
 	public void setConstructorOf(String constructorOf) {
 		this.constructorOf = constructorOf;
 	}
-	
+
 //	@Override
 //    public int hashCode() {
 //        return this.toString().hashCode();

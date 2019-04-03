@@ -78,8 +78,8 @@ public class Config {
 			
 			if (target.getInstancePath() != null)
 				setAttribute(doc, xmlTarget, "instancePath", target.getInstancePath());
-			if (target.getMethodPath() != null)
-				setAttribute(doc, xmlTarget, "methodPath", target.getMethodPath());
+			if (target.getTypeName() != null)
+				setAttribute(doc, xmlTarget, "typeName", target.getTypeName());
 			
 			elem.appendChild(xmlTarget);
 		}
@@ -92,15 +92,28 @@ public class Config {
 			if (constraint.getNullProb() != null)
 				setAttribute(doc, xmlConstraint, "nullProb", constraint.getNullProb().toString());
 			if (constraint.getProb() != null)
-				setAttribute(doc, xmlConstraint, "prob", constraint.getProb().toString());
-			
+                setAttribute(doc, xmlConstraint, "prob", constraint.getProb().toString());
+            if (constraint.isNegative() != null)
+                setAttribute(doc, xmlConstraint, "negative", constraint.isNegative() ? "True" : "False");
+            if (constraint.getLowerBound() != null)
+                setAttribute(doc, xmlConstraint, "lowerBound", constraint.getLowerBound().toString());
+            if (constraint.getUpperBound() != null)
+                setAttribute(doc, xmlConstraint, "upperBound", constraint.getUpperBound().toString());
+            if (constraint.getStringExamples() != null) {
+                Element sExamples = doc.createElement("StringExamples");
+                for (String example : constraint.getStringExamples()) {
+                    setAttribute(doc, sExamples, "StringExample", example);
+                }
+                xmlConstraint.appendChild(sExamples);
+            }
+
 			elem.appendChild(xmlConstraint);
 		}
 			
 		// Recursively add children
 		if (parent.getChildren().size() > 0) {
 			Element xmlScopes = doc.createElement("scopes");
-			
+
 			for (Scope child : parent.getChildren()) {
 				Element childScope = doc.createElement("scope");
 				appendScopes(doc, childScope, child);

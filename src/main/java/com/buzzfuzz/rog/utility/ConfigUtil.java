@@ -84,10 +84,13 @@ public class ConfigUtil {
 		Target target = new Target();
 
 		for (int i=0; i < tAtts.getLength(); i++) {
-			Node child = tAtts.item(i);
-			if (child.getNodeName().equals("instancePath")) {
+            Node child = tAtts.item(i);
+            String nodeName = child.getNodeName();
+			if (nodeName.equals("instancePath")) {
 				target.setInstancePath(child.getTextContent());
-			}
+            } else if (nodeName.equals("typeName")) {
+                target.setTypeName(child.getTextContent());
+            }
 			// More later
 		}
 
@@ -104,7 +107,27 @@ public class ConfigUtil {
 				double value = Double.parseDouble(child.getTextContent());
 				// might want to verify that it is within 0 and 1.0
 				constraint.setNullProb(value);
-			}
+            }
+            if (child.getNodeName().equals("lowerBound")) {
+                double value = Double.parseDouble(child.getTextContent());
+                constraint.setLowerBound(value);
+            }
+            if (child.getNodeName().equals("upperBound")) {
+                double value = Double.parseDouble(child.getTextContent());
+                constraint.setUpperBound(value);
+            }
+            if (child.getNodeName().equals("negative")) {
+                constraint.setNegative(child.getTextContent().toLowerCase().equals("false") || child.getTextContent().equals("0"));
+            }
+            if (child.getNodeName().equals("StringExamples")) {
+
+                NodeList examples = child.getChildNodes();
+                String[] stringExamples = new String[examples.getLength()];
+                for (int s=0; s < examples.getLength(); s++) {
+                    stringExamples[s] = examples.item(s).getTextContent();
+                }
+                constraint.setStringExamples(stringExamples);
+            }
 		}
 
 		return constraint;
@@ -114,6 +137,8 @@ public class ConfigUtil {
         mergeTrees(t1, t2.getRoot());
         return t1;
 	}
+
+    // TODO: I don't think that this method works how I inteded because of addPair not working without the effective target
 
 	// Merges two trees together, overriding the first tree with the second where applicable
 	private static void mergeTrees(ConfigTree t1, Scope scope) {
@@ -172,9 +197,10 @@ public class ConfigUtil {
 			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 			DOMSource source = new DOMSource(doc);
 			
-		     StreamResult result = new StreamResult(configuration);
+		    StreamResult result = new StreamResult(configuration);
 		    
-			transformer.transform(source, result);
+            transformer.transform(source, result);
+
 		} catch (TransformerConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

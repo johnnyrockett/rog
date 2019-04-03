@@ -77,26 +77,35 @@ public class ConfigTree {
 			return new Tuple<Tuple<Scope, Tuple<Target, Constraint>>, Integer>(new Tuple<Scope, Tuple<Target, Constraint>>(lowestScope, pair), maxDepth);
 		}
 		return null;
-	}
-    
+    }
+
     // Returns true if the first target is equal to or a subset of the second target
     private boolean validateContext(Target target, Target context) {
 		if (target == null) {
 			return true;
-		} else if (context.getInstancePath() != null && target.getInstancePath() != null) {
-			return context.getInstancePath().contains(target.getInstancePath()); // Eventually use regex
-		}
-		return false; // This should have a lot of things later
+		} else if (target.getInstancePath() != null) {
+            if (context.getInstancePath() == null)
+                return false;
+            if (!context.getInstancePath().contains(target.getInstancePath())) // Eventually use regex
+                return false;
+        } if (target.getTypeName() != null) {
+            if (context.getTypeName() == null)
+                return false;
+            if (!context.getTypeName().equals(target.getTypeName())) {
+                return false;
+            }
+        }
+		return true; // This should have a lot of things later
 	}
     
     public class Tuple<X, Y> { 
-		public final X x; 
+		public final X x;
 		public final Y y; 
 		public Tuple(X x, Y y) { 
 			this.x = x; 
 			this.y = y; 
 		} 
-	} 
+	}
 
     public static class Scope {
         private Target target;

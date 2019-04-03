@@ -29,6 +29,10 @@ public class FuzzConstructorFinder extends InstanceFinder {
 
 	@Override
 	public ArrayList<?> getOptions(Class<?> target) {
+        // TODO: maven isn't giving me path for common.jar
+        if (target.getSimpleName().equals("FileSystemException") || target.getSimpleName().equals("Binding")) {
+            return new ArrayList<Method>();
+        }
 		Method[] methods = target.getDeclaredMethods();
 		
 		ArrayList<Method> fuzzConstructors = new ArrayList<Method>();

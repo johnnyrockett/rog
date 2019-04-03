@@ -133,8 +133,9 @@ public class InstanceDispatcher {
 		}
 		instancePath = instancePath.substring(0, instancePath.length()-1);
 		context.setInstancePath(instancePath);
-		
-		log("current path: " + instancePath);
+        log("current path: " + instancePath);
+
+        context.setTypeName(target.getSimpleName());
 		
 		return context;
 	}
@@ -172,24 +173,24 @@ public class InstanceDispatcher {
 	
 	public Object checkPrimatives(Class<?> target) {
 		if (target.equals(int.class)) {
-			return rng.getInt();
+			return rng.getInt(this.constraint);
 		} else if (target.equals(long.class)) {
 			System.out.println("GETTING LONG PRIMITIVE");
-			return rng.getLong();
+			return rng.getLong(this.constraint);
 		} else if (target.equals(char.class)) {
-			return rng.getChar();
+			return rng.getChar(this.constraint);
 		} else if (target.equals(float.class)) {
-			return rng.getFloat();
+			return rng.getFloat(this.constraint);
 		} else if (target.equals(double.class)) {
-			return rng.getDouble();
+			return rng.getDouble(this.constraint);
 		} else if (target.equals(boolean.class)) {
-			return rng.getBool();
+			return rng.getBool(this.constraint);
 		} else if (target.equals(byte.class)) {
-			return rng.getByte();
+			return rng.getByte(this.constraint);
 		} else if (target.equals(short.class)) {
-			return rng.getShort();
+			return rng.getShort(this.constraint);
 		} else if (target.equals(String.class)) {
-			return rng.getString();
+			return rng.getString(this.constraint);
 		} else if (target.isEnum()) {
 			Object[] values = target.getEnumConstants();
 			int index = rng.fromRange(0, values.length - 1);
