@@ -34,7 +34,7 @@ import org.w3c.dom.NodeList;
 
 public class ConfigUtil {
 
-    public static ConfigTree createConfigFromFile(String path) {
+    public static Config createConfigFromFile(String path) {
 		if (!path.isEmpty() && path != null) {
 			try {
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -42,20 +42,21 @@ public class ConfigUtil {
 				builder = factory.newDocumentBuilder();
 				Document doc = builder.parse(path);
 
-				ConfigTree fileConfig = new ConfigTree();
+				Config config = new Config();
 
 				Node xmlConfig = doc.getElementsByTagName("config").item(0);
 				
 				for (int i=0; i < xmlConfig.getChildNodes().getLength(); i++) {
 					Node child = xmlConfig.getChildNodes().item(i);
 					if (child.getNodeName().equals("scopes")) {
-						evaluateScopes(child.getChildNodes(), fileConfig.getRoot());
+						evaluateScopes(child.getChildNodes(), config.getTree().getRoot());
                     } else if (child.getNodeName().equals("choices")) {
                         List<Choice> choices = evaluateChoices(child.getChildNodes());
+                        config.setChoices(choices);
                     }
 				}
 
-				return fileConfig;
+				return config;
 			} catch (Exception e) {
                 e.printStackTrace();
             }
@@ -67,83 +68,69 @@ public class ConfigUtil {
 
         List<Choice> choices = new ArrayList<Choice>();
 
-        for (int i=0; i < xmlChoices.getLength(); i++) {
-			Node xmlChoice = xmlChoices.item(i);
-            if (xmlChoice.getNodeName().equals("Choices")) {
+        for (int c=0; c < xmlChoices.getLength(); c++) {
+            Node xmlChoice = xmlChoices.item(c);
+            if (xmlChoice.getNodeName().equals("choice")) {
                 Choice choice = new Choice();
-                Target target;
-                NodeList detail = xmlChoice.getChildNodes();
-                for (int c=0; c < detail.getLength(); c++) {
-                    Node choiceDetail = detail.item(c);
+                NodeList details = xmlChoice.getChildNodes();
+                for (int d=0; d < details.getLength(); d++) {
+                    Node choiceDetail = details.item(d);
+
                     if (choiceDetail.getNodeName().equals("target")) {
-                        target = parseTarget(choiceDetail);
+                        // System.out.println("parsing choice target");
+                        choice.setTarget(parseTarget(choiceDetail));
                     } else if (choiceDetail.getNodeName().equals("INT")) {
                         String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
                         try {
-                            int value = Integer.parseInt(value);
-                            constraint.addChoice(value);
+                            choice.setValue(Integer.parseInt(value));
                         } catch( Exception e) {
                             // eat it
                         }
-                    } else if (choiceType.getNodeName().equals("charChoices")) {
-                        NodeList charChoices = choiceType.getChildNodes();
-                        for (int k=0; k < charChoices.getLength(); k++) {
-                            try {
-                                char value = charChoices.item(k).getTextContent().charAt(0);
-                                constraint.addChoice(value);
-                            } catch( Exception e) {
-                                // eat it
-                            }
+                    } else if (choiceDetail.getNodeName().equals("LONG")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        try {
+                            choice.setValue(Long.parseLong(value));
+                        } catch( Exception e) {
+                            // eat it
                         }
-                    } else if (choiceType.getNodeName().equals("floatChoices")) {
-                        NodeList floatChoices = choiceType.getChildNodes();
-                        for (int k=0; k < floatChoices.getLength(); k++) {
-                            try {
-                                float value = Float.parseFloat(floatChoices.item(k).getTextContent());
-                                constraint.addChoice(value);
-                            } catch( Exception e) {
-                                // eat it
-                            }
+                    } else if (choiceDetail.getNodeName().equals("CHAR")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        choice.setValue(value.charAt(0));
+                    } else if (choiceDetail.getNodeName().equals("FLOAT")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        try {
+                            choice.setValue(Float.parseFloat(value));
+                        } catch( Exception e) {
+                            // eat it
                         }
-                    } else if (choiceType.getNodeName().equals("doubleChoices")) {
-                        NodeList doubleChoices = choiceType.getChildNodes();
-                        for (int k=0; k < doubleChoices.getLength(); k++) {
-                            try {
-                                double value = Double.parseDouble(doubleChoices.item(k).getTextContent());
-                                constraint.addChoice(value);
-                            } catch( Exception e) {
-                                // eat it
-                            }
+                    } else if (choiceDetail.getNodeName().equals("DOUBLE")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        try {
+                            choice.setValue(Double.parseDouble(value));
+                        } catch( Exception e) {
+                            // eat it
                         }
-                    } else if (choiceType.getNodeName().equals("boolChoices")) {
-                        NodeList boolChoices = choiceType.getChildNodes();
-                        for (int k=0; k < boolChoices.getLength(); k++) {
-                            constraint.addChoice(Boolean.parseBoolean(boolChoices.item(k).getTextContent()));
-                        }
-                    } else if (choiceType.getNodeName().equals("byteChoices")) {
-                        NodeList byteChoices = choiceType.getChildNodes();
-                        for (int k=0; k < byteChoices.getLength(); k++) {
-                            constraint.addChoice(Byte.parseByte(byteChoices.item(k).getTextContent()));
-                        }
-                    } else if (choiceType.getNodeName().equals("shortChoices")) {
-                        NodeList shortChoices = choiceType.getChildNodes();
-                        for (int k=0; k < shortChoices.getLength(); k++) {
-                            constraint.addChoice(Short.parseShort(shortChoices.item(k).getTextContent()));
-                        }
-                    } else if (choiceType.getNodeName().equals("stringChoices")) {
-                        NodeList stringChoices = choiceType.getChildNodes();
-                        for (int k=0; k < stringChoices.getLength(); k++) {
-                            constraint.addChoice(stringChoices.item(k).getTextContent());
-                        }
-                    } else if (choiceType.getNodeName().equals("enumChoices")) {
-                        NodeList enumChoices = choiceType.getChildNodes();
-                        for (int k=0; k < enumChoices.getLength(); k++) {
-                            constraint.addChoice("Enum", Integer.parseInt(enumChoices.item(k).getTextContent()));
-                        }
+                    } else if (choiceDetail.getNodeName().equals("BOOL")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        choice.setValue(Boolean.parseBoolean(value));
+                    } else if (choiceDetail.getNodeName().equals("BYTE")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        choice.setValue(Byte.parseByte(value));
+                    } else if (choiceDetail.getNodeName().equals("SHORT")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        choice.setValue(Short.parseShort(value));
+                    } else if (choiceDetail.getNodeName().equals("STRING")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        choice.setValue(value);
+                    } else if (choiceDetail.getNodeName().equals("ENUM")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        choice.setValue("enum", Integer.parseInt(value));
                     }
                 }
+                choices.add(choice);
             }
         }
+        return choices;
     }
 
     private static void evaluateScopes(NodeList xmlScopes, Scope configScope) {
@@ -365,7 +352,8 @@ public class ConfigUtil {
 	    Transformer transformer;
 		try {
 			transformer = transformerFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 			DOMSource source = new DOMSource(doc);
 			

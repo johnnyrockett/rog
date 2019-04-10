@@ -35,6 +35,10 @@ public class Config {
         return this.config;
     }
 
+    public void setChoices(List<Choice> choices) {
+        this.choices = choices;
+    }
+
     public List<Choice> getChoices() {
         return this.choices;
     }
@@ -135,6 +139,8 @@ public class Config {
     }
 
     private static void appendChoices(Document doc, Element elem, List<Choice> choices) {
+        Element choicesElement = doc.createElement("choices");
+        elem.appendChild(choicesElement);
         for (Choice choice : choices) {
             Element choiceElem = doc.createElement("choice");
 
@@ -144,7 +150,7 @@ public class Config {
             type.setAttribute("value", choice.getValueString());
             choiceElem.appendChild(type);
 
-            elem.appendChild(choiceElem);
+            choicesElement.appendChild(choiceElem);
         }
     }
 
@@ -167,10 +173,7 @@ public class Config {
 		    
             appendScopes(doc, configElement, config.getRoot());
 
-            Element choicesElement = doc.createElement("choices");
-            doc.appendChild(choicesElement);
-
-            appendChoices(doc, choicesElement, this.getChoices());
+            appendChoices(doc, configElement, this.getChoices());
 
 		  } catch (ParserConfigurationException pce) {
 		    pce.printStackTrace();

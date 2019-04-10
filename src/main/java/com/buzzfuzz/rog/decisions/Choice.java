@@ -5,7 +5,7 @@ enum ValueType
     INT, LONG, CHAR, FLOAT, DOUBLE, BOOL, BYTE, SHORT, STRING, ENUM
 }
 
-class Choice {
+public class Choice {
     private Target target;
 
     // Store the choices made
@@ -22,12 +22,16 @@ class Choice {
 
     private ValueType type;
 
+    public Choice() {
+        // assuming that they will set the values later
+    }
+
     public Choice(Target target, int choice) {
         this.target = target;
         this.intChoice = choice;
         this.type = ValueType.INT;
     }
-    
+
     public Choice(Target target, long choice) {
         this.target = target;
         this.longChoice = choice;
@@ -82,12 +86,95 @@ class Choice {
         this.type = ValueType.ENUM;
     }
 
+    public void setValue(int choice) {
+        this.intChoice = choice;
+        this.type = ValueType.INT;
+    }
+    
+    public void setValue(long choice) {
+        this.longChoice = choice;
+        this.type = ValueType.LONG;
+    }
+    
+    public void setValue(char choice) {
+        this.charChoice = choice;
+        this.type = ValueType.CHAR;
+    }
+    
+    public void setValue(float choice) {
+        this.floatChoice = choice;
+        this.type = ValueType.FLOAT;
+    }
+    
+    public void setValue(double choice) {
+        this.doubleChoice = choice;
+        this.type = ValueType.DOUBLE;
+    }
+    
+    public void setValue(boolean choice) {
+        this.boolChoice = choice;
+        this.type = ValueType.BOOL;
+    }
+    
+    public void setValue(byte choice) {
+        this.byteChoice = choice;
+        this.type = ValueType.BYTE;
+    }
+    
+    public void setValue(short choice) {
+        this.shortChoice = choice;
+        this.type = ValueType.SHORT;
+    }
+    
+    public void setValue(String choice) {
+        this.stringChoice = choice;
+        this.type = ValueType.STRING;
+    }
+    
+    public void setValue(String name, int choice) {
+        this.enumChoice = choice;
+        this.type = ValueType.ENUM;
+    }
+
+    public void setTarget(Target target) {
+        this.target = target;
+    }
+
     public Target getTarget() {
         return this.target;
     }
 
     public String getChoiceType() {
         return this.type.name();
+    }
+
+    public int rateValidity(Constraint constraint) {
+        if (constraint == null)
+            return 0;
+        switch (this.type) {
+            case INT:
+                return constraint.rateValidity(this.intChoice);
+            case LONG:
+                return constraint.rateValidity(this.longChoice);
+            case CHAR:
+                return constraint.rateValidity(this.charChoice);
+            case FLOAT:
+                return constraint.rateValidity(this.floatChoice);
+            case DOUBLE:
+                return constraint.rateValidity(this.doubleChoice);
+            case BOOL:
+                return 0; // constraint.rateValidity(this.boolChoice); // not implemented yet
+            case BYTE:
+                return constraint.rateValidity(this.byteChoice);
+            case SHORT:
+                return constraint.rateValidity(this.shortChoice);
+            case STRING:
+                return constraint.rateValidity("Temp String"); // this.stringChoice; xml can't handle this yet
+            case ENUM:
+                return 0; // constraint.rateValidity("enum", this.enumChoice); // not implemented yet
+            default:
+                return 0;
+        }
     }
 
     public String getValueString() {
@@ -109,7 +196,7 @@ class Choice {
             case SHORT:
                 return Short.toString(this.shortChoice);
             case STRING:
-                return this.stringChoice;
+                return "Temp String"; // this.stringChoice; xml can't handle this yet
             case ENUM:
                 return Integer.toString(this.enumChoice);
             default:
