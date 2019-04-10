@@ -1,5 +1,9 @@
 package com.buzzfuzz.rog.decisions;
 
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
 public class Constraint {
 	private Double nullProb;
     private Double prob;
@@ -64,7 +68,7 @@ public class Constraint {
     /**
      * @param negative the negative to set
      */
-    public void setNegative(boolean negative) {
+    public void setNegative(Boolean negative) {
         this.negative = negative;
     }
 
@@ -79,7 +83,7 @@ public class Constraint {
 	public Double getProb() {
 		return this.prob;
 	}
-	
+
 	public Constraint clone() {
 		Constraint clone = new Constraint();
 		clone.setNullProb(this.nullProb);
@@ -89,8 +93,10 @@ public class Constraint {
         clone.setUpperBound(this.upperBound);
 		return clone;
 	}
-	
+
 	public void override(Constraint constraint) {
+        if (constraint == null)
+            return;
 		if (constraint.nullProb != null)
 			this.nullProb = constraint.nullProb;
 		if (constraint.prob != null)
@@ -101,15 +107,75 @@ public class Constraint {
             this.lowerBound = constraint.lowerBound;
         if (constraint.upperBound != null)
             this.upperBound = constraint.upperBound;
-	}
+    }
 
 	@Override
     public int hashCode() {
-        return this.toString().hashCode();
+        return Objects.hash(this.nullProb, this.negative, this.lowerBound, this.upperBound);
     }
-	
-	@Override
-	public String toString() {
-		return nullProb + ", " + prob;
-	}
+
+    public int rateValidity(int choice) {
+        int validity = 0;
+        if (this.upperBound != null)
+            validity += (this.upperBound > choice) ? 1 : -1;
+        if (this.lowerBound != null)
+            validity += (this.lowerBound < choice) ? 1 : -1;
+        if (this.negative != null && !this.negative)
+            validity += (choice >= 0) ? 1 : -1;
+        return validity;
+    }
+
+    public int rateValidity(float choice) {
+        int validity = 0;
+        if (this.upperBound != null)
+            validity += (this.upperBound > choice) ? 1 : -1;
+        if (this.lowerBound != null)
+            validity += (this.lowerBound < choice) ? 1 : -1;
+        if (this.negative != null && !this.negative)
+            validity += (choice >= 0) ? 1 : -1;
+        return validity;
+    }
+
+    public int rateValidity(double choice) {
+        int validity = 0;
+        if (this.upperBound != null)
+            validity += (this.upperBound > choice) ? 1 : -1;
+        if (this.lowerBound != null)
+            validity += (this.lowerBound < choice) ? 1 : -1;
+        if (this.negative != null && !this.negative)
+            validity += (choice >= 0) ? 1 : -1;
+        return validity;
+    }
+
+    public int rateValidity(long choice) {
+        int validity = 0;
+        if (this.upperBound != null)
+            validity += (this.upperBound > choice) ? 1 : -1;
+        if (this.lowerBound != null)
+            validity += (this.lowerBound < choice) ? 1 : -1;
+        if (this.negative != null && !this.negative)
+            validity += (choice >= 0) ? 1 : -1;
+        return validity;
+    }
+
+    public int rateValidity(short choice) {
+        int validity = 0;
+        if (this.upperBound != null)
+            validity += (this.upperBound > choice) ? 1 : -1;
+        if (this.lowerBound != null)
+            validity += (this.lowerBound < choice) ? 1 : -1;
+        if (this.negative != null && !this.negative)
+            validity += (choice >= 0) ? 1 : -1;
+        return validity;
+    }
+
+    public int rateValidity(String choice) {
+        if (this.stringExamples != null) {
+            for (String example : this.stringExamples) {
+                if (example.equals(choice))
+                    return 1;
+            }
+        }
+        return -1;
+    }
 }

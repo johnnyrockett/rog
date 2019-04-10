@@ -5,6 +5,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -12,8 +16,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import com.buzzfuzz.rog.decisions.Config;
 import com.buzzfuzz.rog.decisions.ConfigTree;
 import com.buzzfuzz.rog.decisions.Constraint;
+import com.buzzfuzz.rog.decisions.Scope;
+import com.buzzfuzz.rog.decisions.Choice;
 import com.buzzfuzz.rog.decisions.Target;
-import com.buzzfuzz.rog.decisions.ConfigTree.Scope;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -45,7 +50,9 @@ public class ConfigUtil {
 					Node child = xmlConfig.getChildNodes().item(i);
 					if (child.getNodeName().equals("scopes")) {
 						evaluateScopes(child.getChildNodes(), fileConfig.getRoot());
-					}
+                    } else if (child.getNodeName().equals("choices")) {
+                        List<Choice> choices = evaluateChoices(child.getChildNodes());
+                    }
 				}
 
 				return fileConfig;
@@ -54,6 +61,89 @@ public class ConfigUtil {
             }
         }
         return null;
+    }
+
+    public static List<Choice> evaluateChoices(NodeList xmlChoices) {
+
+        List<Choice> choices = new ArrayList<Choice>();
+
+        for (int i=0; i < xmlChoices.getLength(); i++) {
+			Node xmlChoice = xmlChoices.item(i);
+            if (xmlChoice.getNodeName().equals("Choices")) {
+                Choice choice = new Choice();
+                Target target;
+                NodeList detail = xmlChoice.getChildNodes();
+                for (int c=0; c < detail.getLength(); c++) {
+                    Node choiceDetail = detail.item(c);
+                    if (choiceDetail.getNodeName().equals("target")) {
+                        target = parseTarget(choiceDetail);
+                    } else if (choiceDetail.getNodeName().equals("INT")) {
+                        String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
+                        try {
+                            int value = Integer.parseInt(value);
+                            constraint.addChoice(value);
+                        } catch( Exception e) {
+                            // eat it
+                        }
+                    } else if (choiceType.getNodeName().equals("charChoices")) {
+                        NodeList charChoices = choiceType.getChildNodes();
+                        for (int k=0; k < charChoices.getLength(); k++) {
+                            try {
+                                char value = charChoices.item(k).getTextContent().charAt(0);
+                                constraint.addChoice(value);
+                            } catch( Exception e) {
+                                // eat it
+                            }
+                        }
+                    } else if (choiceType.getNodeName().equals("floatChoices")) {
+                        NodeList floatChoices = choiceType.getChildNodes();
+                        for (int k=0; k < floatChoices.getLength(); k++) {
+                            try {
+                                float value = Float.parseFloat(floatChoices.item(k).getTextContent());
+                                constraint.addChoice(value);
+                            } catch( Exception e) {
+                                // eat it
+                            }
+                        }
+                    } else if (choiceType.getNodeName().equals("doubleChoices")) {
+                        NodeList doubleChoices = choiceType.getChildNodes();
+                        for (int k=0; k < doubleChoices.getLength(); k++) {
+                            try {
+                                double value = Double.parseDouble(doubleChoices.item(k).getTextContent());
+                                constraint.addChoice(value);
+                            } catch( Exception e) {
+                                // eat it
+                            }
+                        }
+                    } else if (choiceType.getNodeName().equals("boolChoices")) {
+                        NodeList boolChoices = choiceType.getChildNodes();
+                        for (int k=0; k < boolChoices.getLength(); k++) {
+                            constraint.addChoice(Boolean.parseBoolean(boolChoices.item(k).getTextContent()));
+                        }
+                    } else if (choiceType.getNodeName().equals("byteChoices")) {
+                        NodeList byteChoices = choiceType.getChildNodes();
+                        for (int k=0; k < byteChoices.getLength(); k++) {
+                            constraint.addChoice(Byte.parseByte(byteChoices.item(k).getTextContent()));
+                        }
+                    } else if (choiceType.getNodeName().equals("shortChoices")) {
+                        NodeList shortChoices = choiceType.getChildNodes();
+                        for (int k=0; k < shortChoices.getLength(); k++) {
+                            constraint.addChoice(Short.parseShort(shortChoices.item(k).getTextContent()));
+                        }
+                    } else if (choiceType.getNodeName().equals("stringChoices")) {
+                        NodeList stringChoices = choiceType.getChildNodes();
+                        for (int k=0; k < stringChoices.getLength(); k++) {
+                            constraint.addChoice(stringChoices.item(k).getTextContent());
+                        }
+                    } else if (choiceType.getNodeName().equals("enumChoices")) {
+                        NodeList enumChoices = choiceType.getChildNodes();
+                        for (int k=0; k < enumChoices.getLength(); k++) {
+                            constraint.addChoice("Enum", Integer.parseInt(enumChoices.item(k).getTextContent()));
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void evaluateScopes(NodeList xmlScopes, Scope configScope) {
@@ -136,7 +226,87 @@ public class ConfigUtil {
     public static ConfigTree mergeNewTree(ConfigTree t1, ConfigTree t2) {
         mergeTrees(t1, t2.getRoot());
         return t1;
-	}
+    }
+
+    public static void minimize(ConfigTree tree) {
+        // for each set of scope children, I should see where their targets overlap
+        // and create a new super scope that fits the super scopes as children
+        // Solving this involves finding the greatest common factor of a target
+        minimize(tree.getRoot().getChildren());
+    }
+
+    public static void minimize(List<Scope> scopes) {
+        if (scopes == null || scopes.isEmpty())
+            return;
+        List<Scope> children = new ArrayList<Scope>(scopes);
+        Collections.shuffle(children);
+
+        // find the smallest multiple that still works and make nested
+        Target multiple = null;
+        for (Scope child : children) {
+            Target intersection = findIntersection(multiple, child.getTarget());
+            if (!Target.isEmpty(intersection))
+                multiple = intersection;
+        }
+
+        // Add every scope that the multiple applies to to a new scope as children
+        List<Scope> nextGen = new ArrayList<Scope>();
+        for (Scope child : children) {
+            if (Target.validateContext(multiple, child.getTarget())) {
+                nextGen.add(child);
+            }
+        }
+
+        // if (multiple.getInstancePath() != null)
+        //     System.out.println(multiple.getInstancePath() + ", " + nextGen.size());
+
+        if (nextGen.size() > 2) {   // put them in a nested scope
+            for (Scope child : nextGen) {
+                scopes.remove(child);
+                if (child.getTarget() != null) // not sure how this would ever happen... but it does apparently?
+                    child.getTarget().subtract(multiple);
+                // child.setConstraint(new Constraint()); // just to give an insentive to do nesting
+            }
+            Scope parent = new Scope(nextGen);
+            parent.setTarget(multiple);
+            parent.setConstraint(new Constraint());
+            scopes.add(parent);
+        }
+
+        // minimize all of the children as well
+        // for (Scope child : children) {
+        //     minimize(child.getChildren());
+        // }
+    }
+
+    // NOTE: if t1 is null, default to t2
+    public static Target findIntersection(Target t1, Target t2) {
+        if (t1 == null)
+            return Target.clone(t2);
+        if (t2 == null)
+            return t1.clone();
+
+        Target intersection = new Target();
+
+        if (t1.getInstancePath() != null && t2.getInstancePath() != null) {
+            String[] ip1 = t1.getInstancePath().split(".");
+            String[] ip2 = t2.getInstancePath().split(".");
+            if (ip1.length != 0 && ip2.length != 0) {
+                int count = 0;
+                for (; count < ip1.length; count++) {
+                    if (!ip1[count].equals(ip2[count]))
+                    break;
+                }
+                if (count > 0) {
+                    intersection.setInstancePath(String.join(".", Arrays.copyOf(ip1, count)));
+                }
+            }
+        } if (t1.getTypeName() != null && t2.getTypeName() != null && t1.getTypeName().equals(t2.getTypeName())) {
+            intersection.setTypeName(t1.getTypeName());
+        }
+        // As more is added to Target, intersection logic will need to go here
+        return intersection;
+    }
 
     // TODO: I don't think that this method works how I inteded because of addPair not working without the effective target
 
@@ -158,10 +328,12 @@ public class ConfigUtil {
 		File corpus = Paths.get(path, "corpus").toFile();
 		if (!corpus.exists())
 			corpus.mkdir();
-		
-		File output = Paths.get(corpus.toURI().getPath(), String.valueOf(config.hashCode())).toFile();
-		if (output.exists())
-			output.delete();
+
+        int hash = config.hashCode();
+		File output = Paths.get(corpus.toURI().getPath(), String.valueOf(hash)).toFile();
+		if (output.exists()) {
+            output.delete();
+        }
 		
 		output.mkdir();
 		

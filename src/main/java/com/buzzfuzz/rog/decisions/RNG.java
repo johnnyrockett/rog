@@ -64,8 +64,8 @@ public class RNG {
 			int temp = low;
 			low = high;
 			high = temp;
-		}
-		return rand.nextInt(high - low + 1) + low;
+        }
+        return rand.nextInt(Math.abs(high - low) + 1) + low;
 	}
 
 	public double fromRange(double low, double high) {
@@ -105,22 +105,24 @@ public class RNG {
 	}
 
 	public int getInt() {
-        return getInt(null);
+        return getInt(null, null);
     }
-    public int getInt(Constraint constraint) {
+    public int getInt(Target target, Constraint constraint) {
         if (constraint == null)
             return rand.nextInt();
         int lowerBound = (int)((constraint.getLowerBound() == null) ? Integer.MIN_VALUE : constraint.getLowerBound());
         int upperBound = (int)((constraint.getUpperBound() == null) ? Integer.MAX_VALUE : constraint.getUpperBound());
-        int value = fromRange(lowerBound, upperBound);
-        return (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, value) : value;
+        int choice = fromRange(lowerBound, upperBound);
+        choice = (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, choice) : choice;
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public double getDouble() {
-        return getDouble(null);
+        return getDouble(null, null);
     }
 
-    public double getDouble(Constraint constraint) {
+    public double getDouble(Target target, Constraint constraint) {
         if (constraint == null) {
             byte[] bytes = new byte[8];
             rand.nextBytes(bytes);
@@ -129,15 +131,17 @@ public class RNG {
 
         double lowerBound = (double)((constraint.getLowerBound() == null) ? Double.MIN_VALUE : constraint.getLowerBound());
         double upperBound = (double)((constraint.getUpperBound() == null) ? Double.MAX_VALUE : constraint.getUpperBound());
-        double value = fromRange(lowerBound, upperBound);
-        return (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, value) : value;
+        double choice = fromRange(lowerBound, upperBound);
+        choice = (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, choice) : choice;
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public float getFloat() {
-		return getFloat(null);
+		return getFloat(null, null);
     }
 
-    public float getFloat(Constraint constraint) {
+    public float getFloat(Target target, Constraint constraint) {
         if (constraint == null) {
             byte[] bytes = new byte[4];
             rand.nextBytes(bytes);
@@ -146,76 +150,103 @@ public class RNG {
 
         float lowerBound = (float)((constraint.getLowerBound() == null) ? Float.MIN_VALUE : constraint.getLowerBound());
         float upperBound = (float)((constraint.getUpperBound() == null) ? Float.MAX_VALUE : constraint.getUpperBound());
-        float value = fromRange(lowerBound, upperBound);
-        return (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, value) : value;
+        float choice = fromRange(lowerBound, upperBound);
+        choice = (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, choice) : choice;
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public long getLong() {
-		return getLong(null);
+		return getLong(null, null);
     }
 
-    public long getLong(Constraint constraint) {
+    public long getLong(Target target, Constraint constraint) {
         if (constraint == null)
             return rand.nextLong();
 
         long lowerBound = (long)((constraint.getLowerBound() == null) ? Long.MIN_VALUE : constraint.getLowerBound());
         long upperBound = (long)((constraint.getUpperBound() == null) ? Long.MAX_VALUE : constraint.getUpperBound());
-        long value = fromRange(lowerBound, upperBound);
-        return (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, value) : value;
+        long choice = fromRange(lowerBound, upperBound);
+        choice = (constraint.isNegative() != null && !constraint.isNegative()) ? Math.max(0, choice) : choice;
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public short getShort() {
-		return getShort(null);
+		return getShort(null, null);
     }
 
-    public short getShort(Constraint constraint) {
+    public short getShort(Target target, Constraint constraint) {
         if (constraint == null) {
             return (short) rand.nextInt();
         }
 
         short lowerBound = (short)((constraint.getLowerBound() == null) ? Short.MIN_VALUE : constraint.getLowerBound());
         short upperBound = (short)((constraint.getUpperBound() == null) ? Short.MAX_VALUE : constraint.getUpperBound());
-        short value = fromRange(lowerBound, upperBound);
-        return (constraint.isNegative() != null && !constraint.isNegative()) ? (short)Math.max(0, value) : value;
+        short choice = fromRange(lowerBound, upperBound);
+        choice = (constraint.isNegative() != null && !constraint.isNegative()) ? (short)Math.max(0, choice) : choice;
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public char getChar() {
-        return getChar(null);
+        return getChar(null, null);
     }
 
-    public char getChar(Constraint constraint) {
+    public char getChar(Target target, Constraint constraint) {
         // TODO: should lower and upper bounds affect chars?
-        return (char) rand.nextInt();
+        char choice = (char) rand.nextInt();
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public boolean getBool() {
-		return getBool(null);
+		return getBool(null, null);
     }
 
-    public boolean getBool(Constraint constraint) {
+    public boolean getBool(Target target, Constraint constraint) {
         // TODO: constraint for boolean probability?
-        return rand.nextBoolean();
+        boolean choice = rand.nextBoolean();
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public byte getByte() {
-        return getByte(null);
+        return getByte(null, null);
     }
 
-    public byte getByte(Constraint constraint) {
+    public byte getByte(Target target, Constraint constraint) {
         byte[] bytes = new byte[1];
 		rand.nextBytes(bytes);
-		return bytes[0];
+        byte choice = bytes[0];
+        config.choices.add(new Choice(target, choice));
+        return choice;
     }
 
 	public String getString() {
-		return getString(null);
+		return getString(null, null);
 	}
 
-    public String getString(Constraint constraint) {
-        int length = rand.nextInt(30);
-        byte[] bytes = new byte[length];
-		rand.nextBytes(bytes);
-		return new String(bytes, Charset.forName("UTF-8"));
+    public String getString(Target target, Constraint constraint) {
+        String choice;
+        if (constraint.getStringExamples() == null || constraint.getStringExamples().length == 0) {
+            int length = rand.nextInt(30);
+            byte[] bytes = new byte[length];
+            rand.nextBytes(bytes);
+            choice = new String(bytes, Charset.forName("UTF-8"));
+        } else {
+            int index = fromRange(0, constraint.getStringExamples().length-1);
+            choice = constraint.getStringExamples()[index];
+        }
+        config.choices.add(new Choice(target, choice)); // Always "choice" until I can find a better way to store arbitrary Strings in xml
+        return choice;
+    }
+
+    public Object getEnum(Target target, Constraint constraint, Class<?> enumClass) {
+        Object[] values = enumClass.getEnumConstants();
+        int index = fromRange(0, values.length - 1);
+        config.choices.add(new Choice(target, enumClass.getSimpleName(), index));
+        return values[index];
     }
 
 	public void mutateConfig() {
@@ -246,7 +277,7 @@ public class RNG {
         constraint.setNegative(rand.nextBoolean());
 
         if (should(0.5)) {
-            double[] range = {getDouble(), getDouble()};
+            double[] range = {rand.nextInt()/2, rand.nextInt()/2};
             constraint.setLowerBound(Math.min(range[0], range[1]));
             constraint.setUpperBound(Math.max(range[0], range[1]));
         }

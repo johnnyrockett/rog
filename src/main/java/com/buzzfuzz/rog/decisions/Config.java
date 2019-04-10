@@ -1,6 +1,8 @@
 package com.buzzfuzz.rog.decisions;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -9,12 +11,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.buzzfuzz.rog.decisions.ConfigTree.Scope;
 import com.buzzfuzz.rog.decisions.Target;
 
 public class Config {
 
-	ConfigTree config;
+    ConfigTree config;
+    List<Choice> choices;
     StringBuilder log;
 
     Method callerMethod;
@@ -26,10 +28,15 @@ public class Config {
     public Config(ConfigTree tree) {
         config = tree;
         log = new StringBuilder();
+        this.choices = new ArrayList<Choice>();
     }
 
     public ConfigTree getTree() {
         return this.config;
+    }
+
+    public List<Choice> getChoices() {
+        return this.choices;
     }
 
 	public void log(String msg) {
@@ -66,29 +73,32 @@ public class Config {
 		Element elem = doc.createElement(name);
 	    elem.setTextContent(value);
 	    parent.appendChild(elem);
-	}
-	
-	// TODO: These should be moved out to a utility class
-	private static void appendScopes(Document doc, Element elem, Scope parent) {
-		
-		// Add target if it exists
-		if (parent.getTarget() != null) {
-			Target target = parent.getTarget();
+    }
+
+    private static void appendTarget(Document doc, Element elem, Target target) {
+        if (target != null) {
 			Element xmlTarget = doc.createElement("target");
-			
+
 			if (target.getInstancePath() != null)
 				setAttribute(doc, xmlTarget, "instancePath", target.getInstancePath());
 			if (target.getTypeName() != null)
 				setAttribute(doc, xmlTarget, "typeName", target.getTypeName());
-			
+
 			elem.appendChild(xmlTarget);
 		}
+    }
+
+	// TODO: These should be moved out to a utility class
+	private static void appendScopes(Document doc, Element elem, Scope parent) {
+
+        // Add target if it exists
+        appendTarget(doc, elem, parent.getTarget());
 		
 		// Add constraint if it exists
 		if (parent.getConstraint() != null) {
 			Constraint constraint = parent.getConstraint();
 			Element xmlConstraint = doc.createElement("constraint");
-			
+
 			if (constraint.getNullProb() != null)
 				setAttribute(doc, xmlConstraint, "nullProb", constraint.getNullProb().toString());
 			if (constraint.getProb() != null)
@@ -107,7 +117,7 @@ public class Config {
                 xmlConstraint.appendChild(sExamples);
             }
 
-			elem.appendChild(xmlConstraint);
+            elem.appendChild(xmlConstraint);
 		}
 			
 		// Recursively add children
@@ -119,11 +129,31 @@ public class Config {
 				appendScopes(doc, childScope, child);
 				xmlScopes.appendChild(childScope);
 			}
-			
+
 			elem.appendChild(xmlScopes);
 		}
-	}
-	
+    }
+
+    private static void appendChoices(Document doc, Element elem, List<Choice> choices) {
+        for (Choice choice : choices) {
+            Element choiceElem = doc.createElement("choice");
+
+            appendTarget(doc, choiceElem, choice.getTarget());
+
+            Element type = doc.createElement(choice.getChoiceType());
+            type.setAttribute("value", choice.getValueString());
+            choiceElem.appendChild(type);
+
+            elem.appendChild(choiceElem);
+        }
+    }
+
+    public Config clone() {
+        Config clone = new Config(this.getTree().clone());
+        clone.setCallerMethod(this.callerMethod);
+        return clone;
+    }
+
 	public Document toXML() {
 		Document doc = null;
 		try {
@@ -132,10 +162,15 @@ public class Config {
 
 		    // root elements
 		    doc = docBuilder.newDocument();
-		    Element rootElement = doc.createElement("config");
-		    doc.appendChild(rootElement);
+		    Element configElement = doc.createElement("config");
+		    doc.appendChild(configElement);
 		    
-		    appendScopes(doc, rootElement, config.getRoot());
+            appendScopes(doc, configElement, config.getRoot());
+
+            Element choicesElement = doc.createElement("choices");
+            doc.appendChild(choicesElement);
+
+            appendChoices(doc, choicesElement, this.getChoices());
 
 		  } catch (ParserConfigurationException pce) {
 		    pce.printStackTrace();

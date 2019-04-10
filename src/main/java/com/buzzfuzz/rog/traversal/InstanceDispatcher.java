@@ -18,7 +18,8 @@ import com.buzzfuzz.rog.decisions.Target;
 
 public class InstanceDispatcher {
 	
-	private Set<ClassPkg> history;
+    private Set<ClassPkg> history;
+    private Target context;
     private Constraint constraint;
     private ROG robjg;
     private RNG rng;
@@ -75,8 +76,8 @@ public class InstanceDispatcher {
 		// Maybe in load method?
 		history.add(target);
 		loadConstraint(getContext(target.getClazz()));
-		
-		if (!target.getClazz().isPrimitive() && rng.should(constraint.getNullProb())) {
+
+		if (!target.getClazz().isPrimitive() && constraint.getNullProb() != null && rng.should(constraint.getNullProb())) {
 			log("Returning null instead of instance");
 			return null;
 		}
@@ -117,7 +118,7 @@ public class InstanceDispatcher {
 	}
 
 	private Target getContext(Class<?> target) {
-		Target context = new Target();
+		this.context = new Target();
 		String instancePath = "";
 		for (ClassPkg instance : history) {
 			instancePath += instance.getClazz().getSimpleName();
@@ -173,28 +174,25 @@ public class InstanceDispatcher {
 	
 	public Object checkPrimatives(Class<?> target) {
 		if (target.equals(int.class)) {
-			return rng.getInt(this.constraint);
+			return rng.getInt(this.context, this.constraint);
 		} else if (target.equals(long.class)) {
-			System.out.println("GETTING LONG PRIMITIVE");
-			return rng.getLong(this.constraint);
+			return rng.getLong(this.context, this.constraint);
 		} else if (target.equals(char.class)) {
-			return rng.getChar(this.constraint);
+			return rng.getChar(this.context, this.constraint);
 		} else if (target.equals(float.class)) {
-			return rng.getFloat(this.constraint);
+			return rng.getFloat(this.context, this.constraint);
 		} else if (target.equals(double.class)) {
-			return rng.getDouble(this.constraint);
+			return rng.getDouble(this.context, this.constraint);
 		} else if (target.equals(boolean.class)) {
-			return rng.getBool(this.constraint);
+			return rng.getBool(this.context, this.constraint);
 		} else if (target.equals(byte.class)) {
-			return rng.getByte(this.constraint);
+			return rng.getByte(this.context, this.constraint);
 		} else if (target.equals(short.class)) {
-			return rng.getShort(this.constraint);
+			return rng.getShort(this.context, this.constraint);
 		} else if (target.equals(String.class)) {
-			return rng.getString(this.constraint);
+			return rng.getString(this.context, this.constraint);
 		} else if (target.isEnum()) {
-			Object[] values = target.getEnumConstants();
-			int index = rng.fromRange(0, values.length - 1);
-			return values[index];
+            return rng.getEnum(this.context, this.constraint, target);
 		} else {
 			return null;
 		}
