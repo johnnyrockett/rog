@@ -62,7 +62,7 @@ public class Config {
 	
 	@Override
     public int hashCode() {
-        return config.hashCode();
+        return config.hashCode() + choices.hashCode();
     }
 
 	public void addPair(Target target, Constraint constraint) {

@@ -261,9 +261,9 @@ public class ConfigUtil {
         }
 
         // minimize all of the children as well
-        // for (Scope child : children) {
-        //     minimize(child.getChildren());
-        // }
+        for (Scope child : children) {
+            minimize(child.getChildren());
+        }
     }
 
     // NOTE: if t1 is null, default to t2
