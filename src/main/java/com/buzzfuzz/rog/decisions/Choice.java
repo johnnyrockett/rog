@@ -2,7 +2,7 @@ package com.buzzfuzz.rog.decisions;
 
 enum ValueType
 { 
-    INT, LONG, CHAR, FLOAT, DOUBLE, BOOL, BYTE, SHORT, STRING, ENUM
+    INT, LONG, CHAR, FLOAT, DOUBLE, BOOL, BYTE, SHORT, STRING, ENUM, NULL
 }
 
 public class Choice {
@@ -136,6 +136,11 @@ public class Choice {
         this.type = ValueType.ENUM;
     }
 
+    // Sets value to null
+    public void setValue() {
+        this.type = ValueType.NULL;
+    }
+
     public void setTarget(Target target) {
         this.target = target;
     }
@@ -172,6 +177,8 @@ public class Choice {
                 return constraint.rateValidity("Temp String"); // this.stringChoice; xml can't handle this yet
             case ENUM:
                 return 0; // constraint.rateValidity("enum", this.enumChoice); // not implemented yet
+            case NULL:
+                return constraint.rateValidity();
             default:
                 return 0;
         }
@@ -199,6 +206,8 @@ public class Choice {
                 return "Temp String"; // this.stringChoice; xml can't handle this yet
             case ENUM:
                 return Integer.toString(this.enumChoice);
+            case NULL:
+                return ""; // I think its better for the value to be empty. Maybe make "null"
             default:
                 return "N/A";
         }

@@ -125,6 +125,8 @@ public class ConfigUtil {
                     } else if (choiceDetail.getNodeName().equals("ENUM")) {
                         String value = choiceDetail.getAttributes().getNamedItem("value").getNodeValue();
                         choice.setValue("enum", Integer.parseInt(value));
+                    } else if (choiceDetail.getNodeName().equals("NULL")) {
+                        choice.setValue();
                     }
                 }
                 choices.add(choice);
@@ -180,10 +182,9 @@ public class ConfigUtil {
 
 		for (int i=0; i < cAtts.getLength(); i++) {
 			Node child = cAtts.item(i);
-			if (child.getNodeName().equals("nullProb")) {
-				double value = Double.parseDouble(child.getTextContent());
+			if (child.getNodeName().equals("isNull")) {
 				// might want to verify that it is within 0 and 1.0
-				constraint.setNullProb(value);
+				constraint.setIsNull(!(child.getTextContent().toLowerCase().equals("false") || child.getTextContent().equals("0")));
             }
             if (child.getNodeName().equals("lowerBound")) {
                 double value = Double.parseDouble(child.getTextContent());

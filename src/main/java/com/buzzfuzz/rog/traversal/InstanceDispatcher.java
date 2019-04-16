@@ -13,6 +13,7 @@ import java.util.Set;
 
 import com.buzzfuzz.rog.decisions.RNG;
 import com.buzzfuzz.rog.ROG;
+import com.buzzfuzz.rog.decisions.Choice;
 import com.buzzfuzz.rog.decisions.Constraint;
 import com.buzzfuzz.rog.decisions.Target;
 
@@ -77,9 +78,13 @@ public class InstanceDispatcher {
 		history.add(target);
 		loadConstraint(getContext(target.getClazz()));
 
-		if (!target.getClazz().isPrimitive() && constraint.getNullProb() != null && rng.should(constraint.getNullProb())) {
-			log("Returning null instead of instance");
-			return null;
+		if (!target.getClazz().isPrimitive() && constraint.isNull() != null && constraint.isNull()) {
+            log("Returning null instead of instance");
+            Choice nullChoice = new Choice();
+            nullChoice.setTarget(this.context);
+            nullChoice.setValue();
+            rng.getConfig().getChoices().add(nullChoice);
+            return null;
 		}
 		
 		return getInstance(target);

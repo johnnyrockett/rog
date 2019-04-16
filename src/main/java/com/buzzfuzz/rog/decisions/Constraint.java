@@ -1,19 +1,17 @@
 package com.buzzfuzz.rog.decisions;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 public class Constraint {
-	private Double nullProb;
+	private Boolean isNull;
     private Double prob;
     private Boolean negative;
     private Double lowerBound;
     private Double upperBound;
     private String[] stringExamples;
 
-    public void setNullProb(Double prob) {
-        this.nullProb = prob;
+    public void setIsNull(Boolean isNull) {
+        this.isNull = isNull;
     }
 
     /**
@@ -72,8 +70,8 @@ public class Constraint {
         this.negative = negative;
     }
 
-    public Double getNullProb() {
-		return this.nullProb;
+    public Boolean isNull() {
+		return this.isNull;
 	}
 	
 	public void setProb(Double prob) {
@@ -86,7 +84,7 @@ public class Constraint {
 
 	public Constraint clone() {
 		Constraint clone = new Constraint();
-		clone.setNullProb(this.nullProb);
+		clone.setIsNull(this.isNull);
         clone.setProb(this.prob);
         clone.setNegative(this.negative);
         clone.setLowerBound(this.lowerBound);
@@ -97,8 +95,8 @@ public class Constraint {
 	public void override(Constraint constraint) {
         if (constraint == null)
             return;
-		if (constraint.nullProb != null)
-			this.nullProb = constraint.nullProb;
+		if (constraint.isNull != null)
+			this.isNull = constraint.isNull;
 		if (constraint.prob != null)
             this.prob = constraint.prob;
         if (constraint.negative != null)
@@ -111,7 +109,29 @@ public class Constraint {
 
 	@Override
     public int hashCode() {
-        return Objects.hash(this.nullProb, this.negative, this.lowerBound, this.upperBound);
+        return Objects.hash(this.isNull, this.negative, this.lowerBound, this.upperBound);
+    }
+
+    public int size() {
+        int size = 0;
+        if (this.isNull != null)
+            size++;
+        if (this.prob != null)
+            size++;
+        if (this.getStringExamples() != null)
+            size += this.getStringExamples().length;
+        if (this.upperBound != null)
+            size++;
+        if (this.lowerBound != null)
+            size++;
+        if (this.negative != null && !this.negative)
+            size++;
+        return size;
+    }
+
+    // Meant to rate validity of a null value
+    public int rateValidity() {
+        return this.isNull != null && this.isNull ? 1 : -1;
     }
 
     public int rateValidity(int choice) {

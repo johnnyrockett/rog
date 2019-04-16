@@ -272,7 +272,7 @@ public class RNG {
 		// random constraint for exploratory fuzzing
         Constraint constraint = new Constraint();
         // TODO: make these constraints set only sometimes
-		constraint.setNullProb(rand.nextDouble());
+		constraint.setIsNull(rand.nextBoolean());
         constraint.setProb(rand.nextDouble());
         constraint.setNegative(rand.nextBoolean());
 

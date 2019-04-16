@@ -103,8 +103,8 @@ public class Config {
 			Constraint constraint = parent.getConstraint();
 			Element xmlConstraint = doc.createElement("constraint");
 
-			if (constraint.getNullProb() != null)
-				setAttribute(doc, xmlConstraint, "nullProb", constraint.getNullProb().toString());
+			if (constraint.isNull() != null)
+				setAttribute(doc, xmlConstraint, "isNull", constraint.isNull() ? "True" : "False");
 			if (constraint.getProb() != null)
                 setAttribute(doc, xmlConstraint, "prob", constraint.getProb().toString());
             if (constraint.isNegative() != null)
